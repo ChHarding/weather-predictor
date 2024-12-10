@@ -4,36 +4,25 @@ from urllib.parse import quote_plus
 def get_lat_long(address):
     """
     Fetch latitude and longitude for a given address using the Nominatim API.
-    Ensures proper formatting and handles edge cases.
     """
-    # Trim leading/trailing whitespace and ensure proper formatting
-    address = address.strip()
-
-    # Validate city/state format (only letters, spaces, and commas allowed)
-    if not all(c.isalpha() or c.isspace() or c == ',' for c in address):
-        print("Invalid city/state format. Only letters, spaces, and commas are allowed.")
-        return None, None
-
-    # URL encode the address to handle spaces correctly (e.g., "San Francisco" -> "San+Francisco")
-    encoded_address = quote_plus(address)
-    print(f"Querying geocoding API with address: {encoded_address}")  # Debugging output
-
+    # Encode the address to ensure it's URL-friendly
+    encoded_address = quote_plus(address + ", USA")  # Ensure that USA is part of the address
     url = f"https://nominatim.openstreetmap.org/search?format=json&q={encoded_address}"
-
+    
     try:
         response = requests.get(url, headers={'User-Agent': 'WeatherApp'})
-        response.raise_for_status()  # Check for request errors (e.g., 4xx, 5xx)
+        response.raise_for_status()  # Raise an HTTPError if the response code is not 200
     except requests.exceptions.RequestException as e:
         print(f"Request error: {e}")
         return None, None
-
+    
     data = response.json()
 
     if not data:
         print(f"No data found for {address}")
         return None, None
 
-    # Debugging: print the full response data for inspection
+    # Print the response data for debugging purposes
     print(f"Geocoding API Response: {data}")
 
     # Extract latitude and longitude from the first result
@@ -48,15 +37,11 @@ def get_lat_long(address):
         return None, None
 
 # Example usage:
-city = 'San Francisco'
-state = 'California'
+city = 'Ames'
+state = 'Iowa'
 latitude, longitude = get_lat_long(f"{city}, {state}")
 
 if latitude and longitude:
     print(f'The latitude and longitude of {city}, {state} are {latitude}, {longitude}.')
 else:
     print(f'Could not find the latitude and longitude for {city}, {state}.')
-
-
-
-
